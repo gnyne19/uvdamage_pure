@@ -8,12 +8,18 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 
+if (length(args) != 3L) {
+  stop("Usage: tss_enrichment_score_array.R <bam_file> <sample_name> <output_dir>")
+}
 
 
 bamFile <- args[1]
 sampleName <- args[2]
 outPath <- args[3]
 
+if (!file.exists(bamFile) || dir.exists(bamFile)) {
+  stop("BAM input is missing or is not a file: ", bamFile)
+}
 
 dir.create(outPath, recursive = TRUE, showWarnings = FALSE)
 
@@ -39,7 +45,7 @@ gal <- readBamFile(
   bamFile,
   tag = tags,
   asMates = FALSE,
-  bigFile = FALSE
+  bigFile = TRUE
 )
 
 tsse <- TSSEscore(gal, txs)
@@ -75,4 +81,3 @@ plot(
 )
 abline(h = 1, lty = 2)
 dev.off()
-
