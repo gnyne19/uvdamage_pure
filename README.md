@@ -52,18 +52,10 @@ as separate steps in the final pipeline.
 Two additional R scripts were run locally in RStudio to compare non-windowed,
 peak-level RPKM distributions among ATAC, H3K9me3, and H3K27me3 regions:
 
-- `scripts/dunn_rpkm_plot.R`: Dunn pairwise comparisons with Benjamini-Hochberg
+- `scripts/raincloud/dunn_rpkm_plot.R`: Dunn pairwise comparisons with Benjamini-Hochberg
   adjusted p-values.
-- `scripts/wilcoxon_rank_sum_plot.R`: pairwise Wilcoxon rank-sum comparisons
+- `scripts/raincloud/wilcoxon_rank_sum_plot.R`: pairwise Wilcoxon rank-sum comparisons
   with Benjamini-Hochberg adjusted p-values.
-
-Both scripts analyze real and simulated CPD and 6-4PP RPKM values and generate
-raincloud plots annotated with significance levels, group sizes, and pairwise
-median differences. Statistical tests use all finite peak-level RPKM values;
-the plot-specific y limits affect only the displayed distributions. These
-peak-level median differences are distinct from the excluded window-median
-profiles described below.
-
 The scripts retain the local Windows paths used in RStudio
 (`C:/pure_project`) and expect six prepared input tables containing
 `real_rpkm` and `sim_rpkm` columns. The paths must be changed before running
