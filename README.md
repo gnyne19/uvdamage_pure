@@ -11,6 +11,8 @@ The canonical analysis proceeds in the following order:
 1. **ATAC-seq processing and peak calling**
    - `slurms/atac_analysis_array/atac_array.slurm`
    - `slurms/atac_analysis_array/macs3_nucleosomefree_array.slurm`
+   - `slurms/atac_single_scripts/` contains the same processing stages as
+     individually runnable jobs for step-by-step execution and traceability.
    - Supporting R code: `scripts/atac_analysis/`
 2. **Replicate consistency with IDR**
    - `slurms/idr.slurm`
@@ -25,11 +27,58 @@ The canonical analysis proceeds in the following order:
 5. **Background-profile analysis**
    - `slurms/background_profile/` contains the notDS control workflow,
      including strand-specific comparisons.
- 6. **Differential accessibility**
+6. **Differential accessibility**
    - Final analyses: 250-bp summit-centered peaks and nucleosome-free regions
    - `slurms/diffbind/run_diffbind_250_nfr.slurm`
    - `slurms/diffbind/postprocess_diffbind_250_nfr.slurm`
    - Supporting R code: `scripts/diffbind/`
+
+## ATAC-seq workflow and retained alternatives
+
+`slurms/atac_analysis_array/atac_array.slurm` is the canonical ATAC-seq
+workflow used for the final analysis. It performs read-quality control,
+trimming, alignment, BAM processing and filtering, quality assessment,
+Tn5 shifting, signal-track generation, and MACS3 peak calling. The scripts in
+`slurms/atac_single_scripts/` preserve these stages as separate jobs so that an
+individual stage can be inspected or rerun without restarting the full array.
+`bowtie2_hg38_index.slurm` is the reference-index preparation step.
+
+MACS3 peaks were carried forward into the downstream analyses. MACS2 and
+HMMRATAC were tested during method development, so `macs2.slurm` and
+`hmmr_peakcall.slurm` are retained for traceability, but their peak calls were
+not used in the subsequent IDR, window-profile, relative-repair, or DiffBind
+analyses.
+
+## Window-profile generation
+
+For the 100 kb/1 kb-window analysis,
+`peak_center_100kb_overlap.slurm` generates the initial real and simulated
+damage-overlap tables, and `peak_center_100kb_rpkm.slurm` converts those tables
+to RPKM profiles. These initial files are also prerequisites of the retained
+three-chromatin-state workflow.
+
+For the 20 kb/400-window 1-minute CPD ATAC data,
+`atac_real_sim_rpkm.slurm` generates the real and simulated RPKM files. The
+older standalone ATAC mean-plot job was not used for the final figures and is
+therefore not retained. The H3K9me3 and H3K27me3 1-minute CPD RPKM files and
+mean real/simulated profiles are generated separately by the corresponding
+`H3k9me3_*_rpkm.slurm` and `H3k27me3_*_rpkm.slurm` jobs.
+
+The 1-minute 6-4PP workflow is organized differently:
+`damage_64_rpkm.slurm` is an array job that calculates both the RPKM files and
+mean real/simulated profiles for ATAC, H3K9me3, and H3K27me3.
+
+For the later ATAC time points, `noUV_atac_damage_all.slurm` and
+`noUV_atac_sim_damage_all.slurm` generate the real and simulated overlap files.
+`notebooks/damage profiles/noUV_atac_damage_rpkm.ipynb` converts these overlap
+counts to the 15-minute, 30-minute, 1-hour, 4-hour, and 8-hour ATAC RPKM files.
+
+For the later heterochromatin time points,
+`heterochromatin_400windows_mean_20array.slurm`, together with
+`calculate_heterochromatin_window_means.py`, generates the 15-minute,
+30-minute, 1-hour, 4-hour, and 8-hour mean real/simulated profiles for H3K9me3
+and H3K27me3. The 1-minute files provide the initial time point in the
+all-time-point plots.
 
 ## Repository structure
 
