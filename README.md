@@ -15,21 +15,21 @@ The canonical analysis proceeds in the following order:
 2. **Replicate consistency with IDR**
    - `slurms/idr.slurm`
    - `slurms/idr_finalnarrowpeak.slurm`
-3. **Differential accessibility**
+3. **Damage profiles around chromatin features**
+   - 20 kb regions divided into 400 windows (50 bp/window)
+   - 20 kb regions divided into 100 windows (200 bp/window)
+   - 100 kb regions divided into 100 windows (1 kb/window)
+4. **Relative-repair profiles**
+   - `scripts/windows/shared_relative_repair/positive_relative_mean_profiles.py`
+   - Final profiles were calculated at both 20 kb and 100 kb scales.
+5. **Background-profile analysis**
+   - `slurms/background_profile/` contains the notDS control workflow,
+     including strand-specific comparisons.
+ 6. **Differential accessibility**
    - Final analyses: 250-bp summit-centered peaks and nucleosome-free regions
    - `slurms/diffbind/run_diffbind_250_nfr.slurm`
    - `slurms/diffbind/postprocess_diffbind_250_nfr.slurm`
    - Supporting R code: `scripts/diffbind/`
-4. **Damage profiles around chromatin features**
-   - 20 kb regions divided into 400 windows (50 bp/window)
-   - 20 kb regions divided into 100 windows (200 bp/window)
-   - 100 kb regions divided into 100 windows (1 kb/window)
-5. **Relative-repair profiles**
-   - `scripts/windows/shared_relative_repair/positive_relative_mean_profiles.py`
-   - Final profiles were calculated at both 20 kb and 100 kb scales.
-6. **Background-profile analysis**
-   - `slurms/background_profile/` contains the notDS control workflow,
-     including strand-specific comparisons.
 
 ## Repository structure
 
