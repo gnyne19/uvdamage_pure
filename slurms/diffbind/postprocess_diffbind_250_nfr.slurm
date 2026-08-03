@@ -15,9 +15,11 @@ set -euo pipefail
 source /cta/users/guneyn23/miniconda3/etc/profile.d/conda.sh
 conda activate diffbind
 
+REPO_ROOT="${REPO_ROOT:-/cta/users/guneyn23/uvdamage_pure}"
+
 SCRIPTS=(
-    "/cta/users/guneyn23/diffbind/split_250_deseq2_beds.R"
-    "/cta/users/guneyn23/diffbind_nucleosome_free/postprocess_nfr_deseq2.R"
+    "${REPO_ROOT}/scripts/diffbind/summit_based/split_250_deseq2_beds.R"
+    "${REPO_ROOT}/scripts/diffbind/nucleosome_free/postprocess_nfr_deseq2.R"
 )
 
 SCRIPT="${SCRIPTS[$SLURM_ARRAY_TASK_ID]}"

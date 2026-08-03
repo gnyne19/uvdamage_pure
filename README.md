@@ -1,19 +1,72 @@
 # UV Damage and Chromatin Accessibility Analysis
 
-Scripts and SLURM workflows for analyzing UV-induced DNA damage in relation to ATAC-seq chromatin accessibility.
+This repository contains the analysis workflow developed during the Sabancı
+University PURE Summer 2026 program. It combines ATAC-seq and Damage-seq to
+study UV-induced DNA damage and repair across open and closed chromatin states.
+
+## Final workflow
+
+The canonical analysis proceeds in the following order:
+
+1. **ATAC-seq processing and peak calling**
+   - `slurms/atac_analysis_array/atac_array.slurm`
+   - `slurms/atac_analysis_array/macs3_nucleosomefree_array.slurm`
+   - Supporting R code: `scripts/atac_analysis/`
+2. **Replicate consistency with IDR**
+   - `slurms/idr.slurm`
+   - `slurms/idr_finalnarrowpeak.slurm`
+3. **Differential accessibility**
+   - Final analyses: 250-bp summit-centered peaks and nucleosome-free regions
+   - `slurms/diffbind/run_diffbind_250_nfr.slurm`
+   - `slurms/diffbind/postprocess_diffbind_250_nfr.slurm`
+   - Supporting R code: `scripts/diffbind/`
+4. **Damage profiles around chromatin features**
+   - 20 kb regions divided into 400 windows (50 bp/window)
+   - 20 kb regions divided into 100 windows (200 bp/window)
+   - 100 kb regions divided into 100 windows (1 kb/window)
+5. **Relative-repair profiles**
+   - `scripts/windows/shared_relative_repair/positive_relative_mean_profiles.py`
+   - Final profiles were calculated at both 20 kb and 100 kb scales.
+6. **Background-profile analysis**
+   - `slurms/background_profile/` contains the notDS control workflow,
+     including strand-specific comparisons.
 
 ## Repository structure
 
-- `slurms/`: SLURM workflows
-- `scripts/`: Python and R scripts
-- `notebooks/`: Jupyter notebooks, mostly used for rpkm calculations-plots
+- `slurms/`: SLURM job definitions, organized by analysis stage.
+- `scripts/`: R and Python implementations used by the SLURM workflows.
+- `notebooks/`: exploratory and comparative analyses retained as a record of
+  the analysis development process. The canonical runnable workflow is defined
+  by the SLURM files and scripts listed above.
 
-## Window analyses
+## Notebook scope
 
-- 20 kb / 400 windows: 50 bp per window
-- 20 kb / 100 windows: 200 bp per window
-- 100 kb / 100 windows: 1 kb per window
+The notebooks document distinct comparisons performed during the project,
+including confidence-interval choices, real/simulated normalization,
+relative-repair definitions, central-window distributions, and alternative
+window resolutions. They are preserved for traceability but are not presented
+as separate steps in the final pipeline.
 
-## Notes
+## Summary-statistic choice
 
-Large sequencing data and generated outputs are not included.
+Damage-count and RPKM profiles contain a high proportion of zero-valued
+observations. Window medians were therefore frequently zero and did not provide
+an informative profile of the underlying signal. Median-based damage/RPKM
+analyses were excluded from the final repository, and the final window profiles
+use mean-based summaries. The median reported by the peak-length utility is
+unrelated to this choice and is retained only as a descriptive statistic for
+peak widths.
+
+## DiffBind selection
+
+Several DiffBind parameterizations were tested during development. The final
+workflow retains only the 250-bp summit-centered and nucleosome-free (NFR)
+analyses. Significant DESeq2 regions are split into noUV-specific and
+UV-timepoint-specific BED files during post-processing.
+
+## Data availability and paths
+
+Large sequencing files, reference genomes, intermediate files, logs, and
+generated results are not included. The SLURM files preserve the cluster paths
+used during the project (`/cta/users/guneyn23`); these paths and Conda
+environment names must be adapted before running the workflow elsewhere.

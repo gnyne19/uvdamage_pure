@@ -16,6 +16,9 @@
 
 set -euo pipefail
 
+# Override REPO_ROOT when running a clone from a different location.
+REPO_ROOT="${REPO_ROOT:-/cta/users/guneyn23/uvdamage_pure}"
+
 
 echo "Job Started"
 echo "Array job ID: ${SLURM_ARRAY_JOB_ID}"
@@ -383,7 +386,7 @@ date
 conda deactivate
 conda activate atacseqqc
 
-Rscript /cta/users/guneyn23/bam_qc/tss_array.R \
+Rscript "${REPO_ROOT}/scripts/atac_analysis/bamqc_array.R" \
     "$FINAL_BAM" \
     "$SAMPLE" \
     "$BAMQC_DIR"
@@ -401,7 +404,7 @@ echo ""
 echo "11/14 — Tn5 shift ve fragment split started"
 date
 
-Rscript /cta/users/guneyn23/bam_qc/shift_split_array.R \
+Rscript "${REPO_ROOT}/scripts/atac_analysis/shift_split_array.R" \
     "$FINAL_BAM" \
     "$SAMPLE" \
     "$SHIFT_DIR"
@@ -436,7 +439,7 @@ echo ""
 echo "12/14 — TSS enrichment analysis started"
 date
 
-Rscript /cta/users/guneyn23/tss_enrichment_score/tss_enrichment_core_array.R \
+Rscript "${REPO_ROOT}/scripts/atac_analysis/tss_enrichment_score_array.R" \
     "$SHIFTED_BAM" \
     "$SAMPLE" \
     "$TSS_DIR"

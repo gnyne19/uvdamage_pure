@@ -14,12 +14,14 @@ set -euo pipefail
 source /cta/users/guneyn23/miniconda3/etc/profile.d/conda.sh
 conda activate diffbind
 
+REPO_ROOT="${REPO_ROOT:-/cta/users/guneyn23/uvdamage_pure}"
+
 echo "DiffBind no-summits analysis started"
 echo "Job ID: $SLURM_JOB_ID"
 echo "CPUs: $SLURM_CPUS_PER_TASK"
 date
 
-Rscript /cta/users/guneyn23/diffbind/diffbind_no_summits.R
+Rscript "${REPO_ROOT}/scripts/diffbind/summit_based/diffbind_no_summits.R"
 
 echo "DiffBind no-summits analysis completed"
 date
