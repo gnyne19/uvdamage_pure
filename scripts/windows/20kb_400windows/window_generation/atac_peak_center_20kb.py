@@ -1,0 +1,35 @@
+input_file = "/cta/users/guneyn23/idr_results/HelanoUV_R1_R3_IDR_0.05.narrowPeak"
+output_file = "/cta/users/guneyn23/peak_center_20kb/HelanoUV_R1_R3_IDR_0.05_summit_centered_20kb.bed"
+
+with open(input_file) as infile, open(output_file, "w") as outfile:
+
+    peak_number = 1
+
+    for line in infile:
+        if not line.strip():
+            continue
+
+        columns = line.strip().split("\t")
+
+        chromosome = columns[0]
+        start = int(columns[1])
+        summit_offset = int(columns[9])
+
+     
+        center = start + summit_offset
+
+        new_start = center - 10000
+        new_end = center + 10000
+
+        if new_start < 0:
+            new_start = 0
+            new_end = 20000
+
+        outfile.write(
+            chromosome + "\t" +
+            str(new_start) + "\t" +
+            str(new_end) + "\t" +
+            "peak_" + str(peak_number) + "\n"
+        )
+
+        peak_number += 1
