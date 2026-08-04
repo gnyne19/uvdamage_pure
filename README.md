@@ -32,6 +32,15 @@ The canonical analysis proceeds in the following order:
    - `slurms/diffbind/run_diffbind_250_nfr.slurm`
    - `slurms/diffbind/postprocess_diffbind_250_nfr.slurm`
    - Supporting R code: `scripts/diffbind/`
+7. **Damage profiles at differential-accessibility regions**
+   - Full-width (`no_summits`) differential regions are centered on their
+     genomic interval midpoint.
+   - Profiles are calculated across either 20 kb (100 x 200-bp windows) or
+     100 kb (100 x 1-kb windows).
+   - Real Damage-seq signal, simulated signal, and their real/simulated ratio
+     are summarized separately for noUV-higher and UV-timepoint-higher regions.
+   - Workflow files: `slurms/diffbind/differential_peak_profiles/`
+   - RPKM calculation: `scripts/diffbind/differential_peak_profiles/`
 
 ## ATAC-seq workflow and retained alternatives
 
@@ -128,6 +137,39 @@ workflow uses the 250-bp summit-centered and nucleosome-free (NFR) analyses;
 the full-width `no_summits` alternative is also retained for comparison.
 Significant DESeq2 regions are split into noUV-specific and
 UV-timepoint-specific BED files during post-processing.
+
+## Differential-peak damage profiles
+
+The full-width `no_summits` DiffBind results are also used to examine
+Damage-seq signal around differential-accessibility regions. In this workflow,
+"noUV-higher" and "UV-timepoint-higher" describe the direction of the ATAC-seq
+DESeq2 contrast; they do not mean that a region is present exclusively in one
+condition.
+
+The profile workflow currently uses the significant 4-hour and 8-hour DESeq2
+BED files. Each differential interval is represented by its genomic midpoint,
+then expanded and divided into 100 equal windows. Two profile scales are
+available:
+
+- `create_20kb_windows.slurm`: midpoint +/-10 kb, 200 bp per window.
+- `create_100kb_windows.slurm`: midpoint +/-50 kb, 1 kb per window.
+
+For either scale, run the window, overlap, and RPKM jobs in that order. The
+overlap jobs count real and simulated Damage-seq records in each window with
+`bedtools intersect`. The shared Python script calculates:
+
+`RPKM = overlap count x 10^9 / (total damage records x window length)`
+
+The plotting notebooks contain separate sections for real RPKM, simulated
+RPKM, and real/simulated profiles:
+
+- `notebooks/damage profiles/differential_peak/no_summits_differential_damage_profiles_20kb.ipynb`
+- `notebooks/damage profiles/differential_peak/no_summits_differential_damage_profiles_100kb.ipynb`
+
+`heterochromatin_overlap.slurm` is a separate descriptive analysis that reports
+how many noUV-higher and UV-timepoint-higher regions overlap the H3K9me3 and
+H3K27me3 reference BED files. It is not required for generating the damage
+profiles.
 
 ## Data availability and paths
 
