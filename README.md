@@ -42,11 +42,9 @@ The canonical analysis proceeds in the following order:
    - Workflow files: `slurms/diffbind/differential_peak_profiles/`
    - RPKM calculation: `scripts/diffbind/differential_peak_profiles/`
 8. **Non-windowed peak-level repair distributions**
-   - Real and simulated Damage-seq overlaps are counted directly across each
-     complete peak interval, without dividing peaks into windows.
-   - Workflow files: `slurms/non_windowed_overlaps/`
-   - RPKM and 1-minute-relative calculation:
-     `scripts/non_windowed/calculate_relative_rpkm.py`
+   - `slurms/non_windowed_overlaps/` and
+     `scripts/non_windowed/calculate_relative_rpkm.py` calculate peak-level
+     real/simulated RPKM and 1-minute-relative repair distributions.
 
 ## ATAC-seq workflow and retained alternatives
 
@@ -172,44 +170,14 @@ RPKM, and real/simulated profiles:
 - `notebooks/damage profiles/differential_peak/no_summits_differential_damage_profiles_20kb.ipynb`
 - `notebooks/damage profiles/differential_peak/no_summits_differential_damage_profiles_100kb.ipynb`
 
-Two additional line-plot notebooks directly compare damage profiles at the
-4-hour- and 8-hour-specific differential regions. Both use midpoint-centered
-100 kb regions divided into 100 x 1-kb windows:
-
-- `notebooks/damage profiles/differential_peak/cpd_4h_8h_specific_comparison_100kb.ipynb`
-  compares CPD profiles across the damage time course.
-- `notebooks/damage profiles/differential_peak/64pp_1h_damage_4h_8h_specific_comparison_100kb.ipynb`
-  compares the 1-hour 6-4PP profiles.
+The `cpd_4h_8h_specific_comparison_100kb.ipynb` and
+`64pp_1h_damage_4h_8h_specific_comparison_100kb.ipynb` notebooks compare the
+100-kb damage profiles of the 4-hour- and 8-hour-specific regions.
 
 `heterochromatin_overlap.slurm` is a separate descriptive analysis that reports
 how many noUV-higher and UV-timepoint-higher regions overlap the H3K9me3 and
 H3K27me3 reference BED files. It is not required for generating the damage
 profiles.
-
-## Non-windowed peak-level RPKM and relative repair
-
-The non-windowed workflow measures Damage-seq signal across each complete peak
-interval for the noUV IDR ATAC peaks and the directional 4-hour and 8-hour
-DiffBind peak sets. `alltime_noUV_diffpeaks_overlap.slurm` generates real and
-simulated overlap counts for CPD and 6-4PP. The pre-existing 1-minute noUV IDR
-ATAC overlaps are retained under the `1m` subdirectory instead of being
-recalculated.
-
-`nonwindowed_relative_rpkm.slurm` runs
-`scripts/non_windowed/calculate_relative_rpkm.py`, which first calculates
-normal peak-level RPKM:
-
-`RPKM = overlap count x 10^9 / (total damage records x peak length)`
-
-It then calculates each later time point relative to its matching 1-minute
-RPKM:
-
-`relative RPKM = (1-minute RPKM - time-point RPKM) / 1-minute RPKM`
-
-A relative value is written as `NA` when the 1-minute RPKM is zero. The real
-and simulated relative-repair distributions are plotted in separate cells in
-`notebooks/nonwindowed_relative_rpkm_distribution.ipynb`; the distribution
-plots retain values from 0 to 1 and exclude `NA` and negative values.
 
 ## Data availability and paths
 
