@@ -7,8 +7,8 @@
 #SBATCH --partition=mid_mdbf
 #SBATCH --job-name=normal_peak_overlap
 #SBATCH --array=0-11
-#SBATCH --output=/cta/users/guneyn23/normal_peak_overlaps/logs/overlap_%A_%a.out
-#SBATCH --error=/cta/users/guneyn23/normal_peak_overlaps/logs/overlap_%A_%a.err
+#SBATCH --output=/cta/users/guneyn23/non_windowed/nonwindowed_overlaps/normal_peak_overlaps_1m/logs/overlap_%A_%a.out
+#SBATCH --error=/cta/users/guneyn23/non_windowed/nonwindowed_overlaps/normal_peak_overlaps_1m/logs/overlap_%A_%a.err
 #SBATCH --mem=16G
 
 set -euo pipefail
@@ -19,7 +19,7 @@ date
 source /cta/users/guneyn23/miniconda3/etc/profile.d/conda.sh
 conda activate atacseq
 
-OUTPUT_DIR="/cta/users/guneyn23/normal_peak_overlaps"
+OUTPUT_DIR="/cta/users/guneyn23/non_windowed/nonwindowed_overlaps/normal_peak_overlaps_1m"
 
 # Each peak set is paired with real/simulated CPD and 6-4PP damage.
 PEAK_FILES=(
