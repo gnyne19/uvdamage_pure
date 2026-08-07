@@ -59,11 +59,8 @@ The canonical analysis proceeds in the following order:
   groups (4h noUV-specific, 4h-specific, 8h noUV-specific, and 8h-specific).
   The differential-peak analysis is available at both 20 kb/100 windows and
   100 kb/100 windows. These notebooks pool the final overlap-count column and
-  do not calculate or use RPKM.
-- Differential-peak plots use common y-axis limits across peak groups and
-  damage types so that profile amplitudes can be compared directly: 0.50–1.40%
-  for normalized window damage, -45–45% for relative repair, and 0.65–1.45
-  for persistence and real/simulated ratio plots.
+  do not calculate or use RPKM. See calculations on the "Count-share normalization" section below for further information.
+
 - Final filtered damage-profile cells were added to the existing 20 kb and
   100 kb notebooks. They retain 15m/1h/4h/8h for CPD and 15m/30m/1h for
   6-4PP while preserving the earlier figures.
