@@ -22,7 +22,7 @@ The canonical analysis proceeds in the following order:
    - 20 kb regions divided into 100 windows (200 bp/window)
    - 100 kb regions divided into 100 windows (1 kb/window)
 4. **Relative-repair profiles**
-   - `scripts/windows/shared_relative_repair/positive_relative_mean_profiles.py`
+   - `scripts/windows/positive_relative_repair/positive_relative_mean_profiles.py`
    - Final profiles were calculated at both 20 kb and 100 kb scales.
 5. **Background-profile analysis**
    - `slurms/background_profile/` contains the notDS control workflow,
@@ -37,14 +37,52 @@ The canonical analysis proceeds in the following order:
      genomic interval midpoint.
    - Profiles are calculated across either 20 kb (100 x 200-bp windows) or
      100 kb (100 x 1-kb windows).
-   - Real Damage-seq signal, simulated signal, and their real/simulated ratio
-     are summarized separately for noUV-higher and UV-timepoint-higher regions.
+   - The current count-normalized analysis pools the raw overlap counts in
+     each window, divides each window by the total count of its own time-point
+     profile, and uses the normalized 1-minute profile as the persistence
+     reference. This analysis does not use RPKM.
+   - Real and simulated profiles are analyzed separately, with an additional
+     real/simulated spatial correction. The earlier RPKM workflow is retained
+     as a separate analysis rather than mixed with the count-share results.
    - Workflow files: `slurms/diffbind/differential_peak_profiles/`
-   - RPKM calculation: `scripts/diffbind/differential_peak_profiles/`
+   - Count-share notebooks: `notebooks/count_normalize_profiles/`
+   - Retained RPKM calculation: `scripts/diffbind/differential_peak_profiles/`
 8. **Non-windowed peak-level repair distributions**
    - `slurms/non_windowed_overlaps/` and
      `scripts/non_windowed/calculate_relative_rpkm.py` calculate peak-level
      real/simulated RPKM and 1-minute-relative repair distributions.
+
+## Recent analysis additions
+
+- Count-share damage profiles and 1-minute-referenced persistence analyses were
+  added for ATAC, H3K9me3, H3K27me3, and the four full-width differential-peak
+  groups (4h noUV-specific, 4h-specific, 8h noUV-specific, and 8h-specific).
+  The differential-peak analysis is available at both 20 kb/100 windows and
+  100 kb/100 windows. These notebooks pool the final overlap-count column and
+  do not calculate or use RPKM.
+- Differential-peak plots use common y-axis limits across peak groups and
+  damage types so that profile amplitudes can be compared directly: 0.50–1.40%
+  for normalized window damage, -45–45% for relative repair, and 0.65–1.45
+  for persistence and real/simulated ratio plots.
+- Final filtered damage-profile cells were added to the existing 20 kb and
+  100 kb notebooks. They retain 15m/1h/4h/8h for CPD and 15m/30m/1h for
+  6-4PP while preserving the earlier figures.
+- Positive relative repair is calculated per window before taking the mean;
+  negative real values are excluded. The workflow supports both 20 kb/400
+  windows and 100 kb/100 windows. The calculation and filtered-plot scripts
+  are in `scripts/windows/positive_relative_repair/`, with launch jobs in the
+  corresponding `slurms/20kb_400windows/plotting/` and
+  `slurms/100kb_1kbwindows/plotting/` directories.
+- `notebooks/relative repair/nonwindowed_relative_rpkm_distribution.ipynb`
+  first sums the final `bedtools intersect -c` column to compare total overlap
+  counts from 1m to 8h without RPKM normalization. It also plots real and
+  simulated peak-level relative-RPKM distributions separately and reports the
+  initial peak count, excluded negative count, and excluded percentage.
+- `fully_repaired_timepoint_venn.slurm` extracts peaks with relative RPKM = 1
+  and performs reciprocal full-overlap comparisons (`bedtools intersect -f 1
+  -F 1`). The same non-windowed notebook draws the early 15m/30m/1h and late
+  1h/4h/8h Venn diagrams from the resulting BED files; plotting is not run by
+  SLURM.
 
 ## ATAC-seq workflow and retained alternatives
 
@@ -157,6 +195,102 @@ available:
 
 - `create_20kb_windows.slurm`: midpoint +/-10 kb, 200 bp per window.
 - `create_100kb_windows.slurm`: midpoint +/-50 kb, 1 kb per window.
+
+### Count-share normalization
+
+The current persistence analysis starts directly from the final count column
+of the `bedtools intersect -c` overlap files. It does not use the RPKM files.
+For region group (r), damage type (d), data kind (k) (real or simulated),
+time point (t), and window (w), the pooled window count is:
+
+`C(r,d,k,t,w) = sum of overlap counts for window w across all regions`
+
+The total for that complete 100-window profile is:
+
+`T(r,d,k,t) = sum over windows C(r,d,k,t,w)`
+
+The normalized damage share and the percentage shown in the upper profile
+plots are:
+
+`damage_share(r,d,k,t,w) = C(r,d,k,t,w) / T(r,d,k,t)`
+
+`damage_percent(r,d,k,t,w) = 100 x damage_share(r,d,k,t,w)`
+
+Consequently, every time-point profile sums to 1 as a share, or 100% as a
+percentage. The normalization controls for differences in the total number of
+overlapping Damage-seq records between time points and emphasizes where damage
+is distributed within the profile. It does not measure the absolute amount of
+damage remaining genome-wide. Because all windows have the same width within
+each analysis, no RPKM or window-length correction is needed for this
+within-profile comparison.
+
+### Persistence and relative repair
+
+The 1-minute normalized profile is the window-specific reference. Persistence
+at a later time point is calculated independently for every window:
+
+`persistence_ratio(t,w) = damage_share(t,w) / damage_share(1m,w)`
+
+Using `damage_percent` gives exactly the same ratio because the factor of 100
+cancels. Interpretation is:
+
+- `persistence_ratio = 1`: the window has the same relative share as at 1m.
+- `persistence_ratio > 1`: the window represents a larger fraction of the
+  remaining profile than at 1m; this is relative persistence or slower
+  relative depletion.
+- `persistence_ratio < 1`: the window represents a smaller fraction than at
+  1m; this is relative depletion or faster relative repair.
+
+The paired figures show the 1m and selected time-point damage-share profiles
+in the upper row and `time point / 1m` persistence in the lower row. Since the
+input profiles are normalized separately at every time point, persistence is
+a spatial redistribution metric, not the fraction of the original absolute
+lesion count that remains.
+
+The relative-repair view is the same comparison expressed as a percentage:
+
+`relative_repair_percent(t,w) = 100 x (damage_share(1m,w) - damage_share(t,w)) / damage_share(1m,w)`
+
+Equivalently:
+
+`relative_repair_percent = 100 x (1 - persistence_ratio)`
+
+Positive values indicate relative depletion/faster relative repair; zero
+indicates no relative change; negative values indicate relative persistence or
+enrichment compared with the 1m spatial distribution.
+
+### Simulation-corrected persistence
+
+Real and simulated profiles are first normalized independently by their own
+100-window totals. Their spatial enrichment ratio is then:
+
+`real_sim_ratio(t,w) = real_damage_share(t,w) / simulated_damage_share(t,w)`
+
+The simulation-corrected persistence ratio is:
+
+`sim_corrected_persistence(t,w) = real_sim_ratio(t,w) / real_sim_ratio(1m,w)`
+
+This second ratio asks whether real damage becomes relatively more or less
+enriched than the simulated background at a window after accounting for the
+initial 1m enrichment pattern. Values above 1 indicate increased relative
+persistence after simulation correction; values below 1 indicate relative
+depletion. It remains a normalized spatial metric and should not be interpreted
+as absolute repair kinetics.
+
+The count-share notebooks are:
+
+- `notebooks/count_normalize_profiles/damage_profiles_20kb_100windows.ipynb`
+- `notebooks/count_normalize_profiles/damage_profiles_relative_repair_100kb_1kbwindows.ipynb`
+- `notebooks/count_normalize_profiles/damage_profiles_diffpeaks_20kb_100windows.ipynb`
+- `notebooks/count_normalize_profiles/damage_profiles_diffpeaks_100kb_100window.ipynb`
+
+The first two cover ATAC, H3K9me3, and H3K27me3. The last two apply the same
+calculation and plotting workflow to the four 4h/8h `no_summits`
+differential-peak groups. Windows 50 and 51 are additionally summarized as the
+center and compared with the raw total overlap-count change from 1m; this raw
+count diagnostic is separate from the normalized persistence ratio.
+
+### Retained RPKM workflow
 
 For either scale, run the window, overlap, and RPKM jobs in that order. The
 overlap jobs count real and simulated Damage-seq records in each window with
